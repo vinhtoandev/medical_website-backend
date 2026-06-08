@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: derma-insight-api
+  
+  # DataSource Configuration (RDS PostgreSQL)
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/derma_insight}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+  
+  # JPA/Hibernate Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate  # Production should not auto-create/update
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch-size: 50
+  
+  # Jackson Configuration
+  jackson:
+    default-property-inclusion: non_null
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:}
+  access-token-expiration: 3600000   # 1 hour
+  refresh-token-expiration: 2592000000  # 30 days
+
+# AWS Configuration (production)
+aws:
+  s3:
+    bucket-name: ${AWS_S3_BUCKET:}
+    region: ${AWS_REGION:us-east-1}
+    access-key-id: ${AWS_ACCESS_KEY_ID:}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
+
+# OpenAI Configuration
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  api-url: https://api.openai.com/v1
+  embedding-model: text-embedding-3-small
+  embedding-dimensions: 1536
+
+# Logging (minimal in production)
+logging:
+  level:
+    root: WARN
+    com.example.demo: INFO
+    org.springframework: WARN
+
+# Server
+server:
+  port: 8080
+  compression:
+    enabled: true
+    min-response-size: 1024
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized

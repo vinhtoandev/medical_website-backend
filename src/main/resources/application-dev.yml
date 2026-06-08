@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: derma-insight-api
+  
+  # DataSource Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/derma_insight_dev
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  
+  # JPA/Hibernate Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update  # Auto-create/update schema in development
+    show-sql: true
+    open-in-view: false
+  
+  # Jackson Configuration
+  jackson:
+    default-property-inclusion: non_null
+
+# JWT Configuration
+jwt:
+  secret: dev-secret-key-change-in-production-min-32-characters-required-for-hs512
+  access-token-expiration: 3600000   # 1 hour
+  refresh-token-expiration: 2592000000  # 30 days
+
+# AWS Configuration (dev)
+aws:
+  s3:
+    bucket-name: derma-insight-dev
+    region: us-east-1
+    access-key-id: 
+    secret-access-key: 
+
+# OpenAI Configuration
+openai:
+  api-key: 
+  api-url: https://api.openai.com/v1
+  embedding-model: text-embedding-3-small
+  embedding-dimensions: 1536
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.example.demo: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# Server
+server:
+  port: 8080
