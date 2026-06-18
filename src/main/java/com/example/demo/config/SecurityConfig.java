@@ -137,6 +137,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 // Production
                 "https://medical-frontend-hazel.vercel.app",
+                "https://medical-frontend-2.vercel.app",
                 // Local development
                 "http://localhost:5173",
                 "http://localhost:5174",
