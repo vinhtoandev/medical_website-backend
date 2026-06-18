@@ -51,25 +51,25 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // Public endpoints
                         .requestMatchers("/api/auth/login", "/api/auth/refresh").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**", "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**", "/api/categories/**")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/search", "/api/search/**").permitAll()
                         // Swagger UI
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         // Admin endpoints
-                        .requestMatchers(HttpMethod.POST, "/api/articles", "/api/categories", "/api/uploads/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/articles", "/api/categories", "/api/uploads/**")
+                        .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/articles/**", "/api/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/articles/**", "/api/categories/**").hasRole("ADMIN")
                         // All other requests require authentication
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.sendError(401, "Unauthorized");
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.sendError(403, "Access Denied");
-                        })
-                )
+                        }))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -109,8 +109,8 @@ public class SecurityConfig {
      */
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder =
-                http.getSharedObject(AuthenticationManagerBuilder.class);
+        AuthenticationManagerBuilder authenticationManagerBuilder = http
+                .getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder
                 .userDetailsService(userDetailsService())
                 .passwordEncoder(passwordEncoder());
@@ -135,6 +135,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
+                // Production
+                "https://medical-frontend-hazel.vercel.app",
+                // Local development
                 "http://localhost:5173",
                 "http://localhost:5174",
                 "http://localhost:5175",
@@ -142,8 +145,7 @@ public class SecurityConfig {
                 "http://localhost:8080",
                 "http://localhost:8081",
                 "http://localhost:8082",
-                "http://localhost:8083"
-        ));
+                "http://localhost:8083"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);
