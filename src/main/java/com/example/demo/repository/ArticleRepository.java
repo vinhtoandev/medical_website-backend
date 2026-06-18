@@ -5,6 +5,7 @@ import com.example.demo.entity.ArticleStatus;
 import com.example.demo.entity.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,21 +19,25 @@ import java.util.Optional;
  */
 @Repository
 public interface ArticleRepository extends JpaRepository<Article, Long> {
-    
+
+    @EntityGraph(attributePaths = "category")
     Optional<Article> findBySlug(String slug);
 
+    @EntityGraph(attributePaths = "category")
     Page<Article> findByCategoryAndStatusOrderByPublishedAtDesc(
             Category category, ArticleStatus status, Pageable pageable);
 
+    @EntityGraph(attributePaths = "category")
     Page<Article> findByStatusOrderByViewCountDesc(ArticleStatus status, Pageable pageable);
 
+    @EntityGraph(attributePaths = "category")
     Page<Article> findByStatusOrderByPublishedAtDesc(ArticleStatus status, Pageable pageable);
 
     /**
      * Full-text search using PostgreSQL FTS on title, summary, and content
      * Returns articles ordered by relevance
      */
-    @Query(value = "SELECT a FROM Article a WHERE " +
+    @Query("SELECT a FROM Article a JOIN FETCH a.category WHERE " +
             "a.status = 'PUBLISHED' AND (" +
             "LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(a.summary) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
@@ -44,15 +49,22 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     /**
      * Paginated full-text search
+     * Note: countQuery is separate to avoid JOIN FETCH in count query (JPA limitation)
      */
-    @Query(value = "SELECT a FROM Article a WHERE " +
+    @Query(value = "SELECT a FROM Article a JOIN FETCH a.category WHERE " +
             "a.status = 'PUBLISHED' AND (" +
             "LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(a.summary) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(a.content) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
             ") ORDER BY " +
             "CASE WHEN LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%')) THEN 0 ELSE 1 END, " +
-            "a.publishedAt DESC")
+            "a.publishedAt DESC",
+            countQuery = "SELECT COUNT(a) FROM Article a WHERE " +
+            "a.status = 'PUBLISHED' AND (" +
+            "LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(a.summary) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(a.content) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+            ")")
     Page<Article> fullTextSearchPaginated(@Param("keyword") String keyword, Pageable pageable);
 
     /**
@@ -70,11 +82,13 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     /**
      * Find articles by category for related articles
      */
+    @EntityGraph(attributePaths = "category")
     List<Article> findByCategoryAndStatusAndIdNotOrderByPublishedAtDesc(
             Category category, ArticleStatus status, Long excludeId, Pageable pageable);
 
     /**
      * Trending articles (most viewed)
      */
+    @EntityGraph(attributePaths = "category")
     Page<Article> findByStatusOrderByViewCountDescPublishedAtDesc(ArticleStatus status, Pageable pageable);
 }
